@@ -1,16 +1,32 @@
 # encoding: utf-8
+"""Algorithms regarding cographs."""
+import networkx as nx
+__author__ = """\n""".join(['Jonas NYrup <jnyrup@gmail.com>'])
+__all__= ['modularDecomposition', 'isCograph']
 
-import networkx as nx,sys
+def modularDecomposition(G):
+	""" Computes the cotree of a cograph.
+	This is done by modular decomposition - http://en.wikipedia.org/wiki/Modular_decomposition
 
-def decomp(G):
+	Parameters
+	----------
+	G : graph
+		A networkx graph
+		As cotrees can only be computed for cographs an error is raised if the input graph is not a cograph
+
+	Returns
+	-------
+	out : graph
+		The resulting cotree
+	"""
 	if hasattr(G,'graph') and isinstance(G.graph,dict):
 		Gres = nx.DiGraph()
-		decomp1(G,Gres)
+		decomp(G,Gres)
 		return Gres
 	else:
 		raise nx.NetworkXError("Input is not a correct NetworkX graph.")
 
-def decomp1(G,Gres):
+def decomp(G, Gres):
 	# list of modules from complement graph
 	modules = nx.connected_component_subgraphs(nx.complement(G))
 	if len(modules) == 1:
@@ -20,37 +36,32 @@ def decomp1(G,Gres):
 		else:
 			raise nx.NetworkXUnfeasible("input graph is not a valid cograph and corresponding cotree cannot be computed")
 	else:
-		children = [decomp1(module,Gres) for module in modules]
+		children = [decomp(module, Gres) for module in modules]
 		# add internal node and connect all trees above as children
-		root = 'a'+children[0] # a good way to make a new unused node?
+		root = 'a'+str(children[0]) # a good way to make a new unused node?
 		Gres.add_node(root,label='')
-		Gres.add_edges_from([(root,child) for child in children])
+		Gres.add_edges_from([(root, child) for child in children])
 		#return new internal root node
 		return root
 
-##read matrix from file
-filename = sys.argv[1]
-G = nx.Graph()
-f = open(filename,'r')
-n = int(f.readline())
-names = ['g'+str(x+1) for x in xrange(n)]
+def isCograph(G):
+	""" Determines whether G is a valid cograph
+	Parameters
+	----------
+	G : graph
+		A networkx graph
 
-i=0
-for line in f:
-	j = i
-	for char in line:
-		if char != ' ' and char != '\t': #strip spaces and tabs
-			j += 1
-			if char == '1':
-				G.add_nodes_from([names[i],names[j]],layer=0)
-				G.add_edge(names[i],names[j])
-	i += 1
-
-#calculate cotree
-Gres = decomp(G)
-A = nx.to_agraph(G)
-A.layout('dot',args='-Gmargin=0 -Earrowhead=none')
-A.draw(filename+'-cograph.pdf')
-A = nx.to_agraph(Gres)
-A.layout('dot',args='-Gmargin=0 -Gsplines=false -Earrowhead=none')
-A.draw(filename+'-cotree.pdf')
+	Returns
+	-------
+	out : bool
+		Boolean stating whether input graph is a valid cograph
+	"""
+	modules = nx.connected_component_subgraphs(nx.complement(G))
+	if len(modules) == 1:
+		if len(modules[0].nodes()) == 1:
+			#return leaf node
+			return True
+		else:
+			return False
+	else:
+		return all(isCograph(module) for module in modules)
