@@ -36,11 +36,9 @@ def decomp(G, Gres):
 		else:
 			raise nx.NetworkXUnfeasible("input graph is not a valid cograph and corresponding cotree cannot be computed")
 	else:
-		children = [decomp(module, Gres) for module in modules]
 		# add internal node and connect all trees above as children
-		root = 'a'+str(children[0]) # a good way to make a new unused node?
-		Gres.add_node(root,label='')
-		Gres.add_edges_from([(root, child) for child in children])
+		root = nx.utils.generate_unique_node()
+		Gres.add_edges_from([(root, decomp(module, Gres)) for module in modules])
 		#return new internal root node
 		return root
 
