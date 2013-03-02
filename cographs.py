@@ -7,6 +7,7 @@ __all__= ['modularDecomposition', 'isCograph']
 def modularDecomposition(G):
 	""" Computes the cotree of a cograph.
 	This is done by modular decomposition - http://en.wikipedia.org/wiki/Modular_decomposition
+	As the algorithm only works for initial connected graphs, for non-connected graphs the algorithm is applied to the complement graph.
 
 	Parameters
 	----------
@@ -21,7 +22,10 @@ def modularDecomposition(G):
 	"""
 	if hasattr(G,'graph') and isinstance(G.graph,dict):
 		Gres = nx.DiGraph()
-		decomp(G,Gres)
+		if nx.is_connected(G):
+			decomp(G,Gres)
+		else:
+			decomp(nx.complement(G),Gres)
 		return Gres
 	else:
 		raise nx.NetworkXError("Input is not a correct NetworkX graph.")
@@ -54,6 +58,16 @@ def isCograph(G):
 	out : bool
 		Boolean stating whether input graph is a valid cograph
 	"""
+	if hasattr(G,'graph') and isinstance(G.graph,dict):
+		Gres = nx.DiGraph()
+		if nx.is_connected(G):
+			return isCograph1(G)
+		else:
+			return isCograph1(nx.complement(G))
+	else:
+		raise nx.NetworkXError("Input is not a correct NetworkX graph.")
+
+def isCograph1(G):
 	modules = nx.connected_component_subgraphs(nx.complement(G))
 	if len(modules) == 1:
 		if len(modules[0].nodes()) == 1:
@@ -62,4 +76,4 @@ def isCograph(G):
 		else:
 			return False
 	else:
-		return all(isCograph(module) for module in modules)
+		return all(isCograph1(module) for module in modules)
