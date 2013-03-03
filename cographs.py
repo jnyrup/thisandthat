@@ -25,7 +25,10 @@ def modularDecomposition(G):
 		if nx.is_connected(G):
 			decomp(G,Gres)
 		else:
-			decomp(nx.complement(G),Gres)
+			# As cotrees are a unique representation of cographs an extra root is added for non-connected graphs
+			root = nx.utils.generate_unique_node()
+			complement = decomp(nx.complement(G),Gres)
+			Gres.add_edge(root,complement)
 		return Gres
 	else:
 		raise nx.NetworkXError("Input is not a correct NetworkX graph.")
@@ -59,7 +62,9 @@ def isCograph(G):
 		Boolean stating whether input graph is a valid cograph
 	"""
 	if hasattr(G,'graph') and isinstance(G.graph,dict):
-		Gres = nx.DiGraph()
+		if len(G) <= 3:
+			# every graph of at most size 3 are cographs
+			return True
 		if nx.is_connected(G):
 			return isCograph1(G)
 		else:
