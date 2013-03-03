@@ -37,7 +37,7 @@ def decomp(G, Gres):
 	# list of modules from complement graph
 	modules = nx.connected_component_subgraphs(nx.complement(G))
 	if len(modules) == 1:
-		if len(modules[0].nodes()) == 1:
+		if len(modules[0]) == 1:
 			#return leaf node
 			return modules[0].nodes()[0]
 		else:
@@ -75,7 +75,7 @@ def isCograph(G):
 def isCograph1(G):
 	modules = nx.connected_component_subgraphs(nx.complement(G))
 	if len(modules) == 1:
-		if len(modules[0].nodes()) == 1:
+		if len(modules[0]) == 1:
 			#return leaf node
 			return True
 		else:
