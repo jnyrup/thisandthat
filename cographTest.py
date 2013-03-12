@@ -48,6 +48,24 @@ G = nx.Graph()
 G.add_edges_from(list1)
 print isCograph(G)
 Gres = modularDecomposition(G)
+A = nx.to_agraph(G)
+A.layout('dot', args='-Gmargin=0 -Earrowhead=none')
+A.draw('cograph.pdf')
+A = nx.to_agraph(Gres)
+A.layout('dot', args='-Gmargin=0 -Gsplines=false -Earrowhead=none')
+A.draw('cotree.pdf')
+
+# is a non-connected cograph
+Gp=nx.complement(G)
+print isCograph(Gp)
+Gres = modularDecomposition(Gp)
+A = nx.to_agraph(Gp)
+A.layout('dot', args='-Gmargin=0 -Earrowhead=none')
+A.draw('cograph2.pdf')
+A = nx.to_agraph(Gres)
+A.layout('dot', args='-Gmargin=0 -Gsplines=false -Earrowhead=none')
+A.draw('cotree2.pdf')
+
 
 # is *not* a cograph
 G.remove_edge(4,6)
@@ -57,8 +75,3 @@ try:
 except nx.NetworkXUnfeasible:
 	print "It correctly raised an error"
 
-# is a non-connected cograph
-G = nx.Graph()
-G.add_nodes_from([1,2])
-print isCograph(G)
-Gres = modularDecomposition(G)
