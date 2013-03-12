@@ -20,20 +20,18 @@ def modularDecomposition(G):
 	out : graph
 		The resulting cotree
 	"""
-	if hasattr(G,'graph') and isinstance(G.graph,dict):
+	if hasattr(G, 'graph') and isinstance(G.graph, dict):
 		Gres = nx.DiGraph()
 		if nx.is_connected(G):
-			decomp(G,Gres)
+			decomp(G, Gres, 1)
 		else:
-			# As cotrees are a unique representation of cographs an extra root is added for non-connected graphs
-			root = nx.utils.generate_unique_node()
-			complement = decomp(nx.complement(G),Gres)
-			Gres.add_edge(root,complement)
+			# The cotree T' of G', is exactly T with 0 and 1 nodes interchanged. http://www.lirmm.fr/~paul/Biblio/Postscript/wg03.pdf Section 1.2 observation 2
+			decomp(nx.complement(G), Gres, 0)
 		return Gres
 	else:
 		raise nx.NetworkXError("Input is not a correct NetworkX graph.")
 
-def decomp(G, Gres):
+def decomp(G, Gres, rootLabel):
 	# list of modules from complement graph
 	modules = nx.connected_component_subgraphs(nx.complement(G))
 	if len(modules) == 1:
@@ -45,7 +43,8 @@ def decomp(G, Gres):
 	else:
 		# add internal node and connect all trees above as children
 		root = nx.utils.generate_unique_node()
-		Gres.add_edges_from([(root, decomp(module, Gres)) for module in modules])
+		Gres.add_node(root, label=rootLabel)
+		Gres.add_edges_from([(root, decomp(module, Gres, 1-rootLabel)) for module in modules])
 		#return new internal root node
 		return root
 
@@ -61,7 +60,7 @@ def isCograph(G):
 	out : bool
 		Boolean stating whether input graph is a valid cograph
 	"""
-	if hasattr(G,'graph') and isinstance(G.graph,dict):
+	if hasattr(G, 'graph') and isinstance(G.graph, dict):
 		if len(G) <= 3:
 			# every graph of at most size 3 are cographs
 			return True
